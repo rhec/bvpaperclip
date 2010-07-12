@@ -1,0 +1,40 @@
+--- a/vendor/gems/paperclip-2.3.1.1/lib/paperclip/attachment.rb
++++ b/vendor/gems/paperclip-2.3.1.1/lib/paperclip/attachment.rb
+@@ -1,3 +1,5 @@
++require 'mime/types'
++
+ # encoding: utf-8
+ module Paperclip
+   # The Attachment class manages the files for a given attachment. It saves
+@@ -78,7 +80,7 @@ module Paperclip
+ 
+       @queued_for_write[:original]   = uploaded_file.to_tempfile
+       instance_write(:file_name,       uploaded_file.original_filename.strip.gsub(/[^A-Za-z\d\.\-_]+/, '_'))
+-      instance_write(:content_type,    uploaded_file.content_type.to_s.strip)
++      instance_write(:content_type,    MIME::Types.type_for(uploaded_file.original_filename.strip).to_s)
+       instance_write(:file_size,       uploaded_file.size.to_i)
+       instance_write(:updated_at,      Time.now)
+
+--- a/vendor/gems/paperclip-2.3.1.1/lib/paperclip/upfile.rb
++++ b/vendor/gems/paperclip-2.3.1.1/lib/paperclip/upfile.rb
+@@ -6,17 +6,7 @@ module Paperclip
+
+     # Infer the MIME-type of the file from the extension.
+     def content_type
+-      type = (self.path.match(/\.(\w+)$/)[1] rescue "octet-stream").downcase
+-      case type
+-      when %r"jp(e|g|eg)"            then "image/jpeg"
+-      when %r"tiff?"                 then "image/tiff"
+-      when %r"png", "gif", "bmp"     then "image/#{type}"
+-      when "txt"                     then "text/plain"
+-      when %r"html?"                 then "text/html"
+-      when "js"                      then "application/js"
+-      when "csv", "xml", "css"       then "text/#{type}"
+-      else "application/x-#{type}"
+-      end
++      MIME::Types.type_for(self.path.strip).to_s
+     end
+
+     # Returns the file's normal name.
+
+
